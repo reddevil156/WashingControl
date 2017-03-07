@@ -38,7 +38,7 @@ class ServerConnection extends AsyncTask<String, String, String> {
     private Socket socket;
     private InputStream input;
     private OutputStream output = null;
-
+    int actualState = 0;
 
 
     ServerConnection(MainControl a, String ip, int port) {
@@ -49,6 +49,7 @@ class ServerConnection extends AsyncTask<String, String, String> {
         socket = new Socket();
         input = null;
     }
+
     /*
         Stellt im Hintergrund die Datenbankverbidung her, sendet und liest die Daten
      */
@@ -84,7 +85,7 @@ class ServerConnection extends AsyncTask<String, String, String> {
                     while (zaehler < 12) {
                         lineReader = (byte) input.read();
                         if (zaehler > 8) {
-                            received[zaehler-9] = lineReader;
+                            received[zaehler - 9] = lineReader;
                             Log.d("schleife", getByteBinaryString(lineReader));
                         }
                         zaehler++;
@@ -153,6 +154,7 @@ class ServerConnection extends AsyncTask<String, String, String> {
         } else {
             TextView textFeld = (TextView) activity.findViewById(R.id.printView);
             textFeld.setText("funktion ausgeführt");
+
         }
         if (socket.isConnected()) {
             try {
@@ -180,11 +182,26 @@ class ServerConnection extends AsyncTask<String, String, String> {
         for (int i = 7; i >= 0; i--) {
             // -48: the character '0' is No. 48 in ASCII table,
             // so substracting 48 from it will result in the int value 0!
-            b += (s.charAt(i)-48) * pot;
+            b += (s.charAt(i) - 48) * pot;
             pot <<= 1;    // equals pot *= 2 (to create the multiples of 2 (1,2,3,8,16,32)
         }
 
         return b;
     }
 
+    public int checkSwitchCode() {
+
+        String[] greyCodeTable = {"11111", "10111", "10011", "00011", "00100", "01100", "01000", "01010", "01110", "00110", "00010",
+                "10010", "10110", "11110", "11010", "11000", "11100", "10100", "10000", "10001", "10101",
+                "11101", "11001", "11011"};
+        String returnString = getByteBinaryString(received[0]).substring(3);
+        int returnValue = 0;
+
+        for (int i = 0; i < 24; i++) {
+            if (returnString.equals(greyCodeTable[i])) {
+                returnValue = i + 1;
+            }
+        }
+        return returnValue;
+    }
 }
