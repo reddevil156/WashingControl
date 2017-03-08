@@ -2,11 +2,14 @@ package com.twmiwi.com.washingcontrol;
 
 
 import android.app.Activity;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.design.widget.TabLayout;
 import android.support.v7.app.AppCompatActivity;
@@ -24,16 +27,32 @@ import android.widget.Toast;
 public class MainControl extends AppCompatActivity {
 
     boolean updateInProgress = false;
+    private SocketService mService = null;
+
+    private ServiceConnection mConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name,
+                                       IBinder service) {
+            SocketService.LocalBinder binder = (SocketService.LocalBinder) service;
+            mService = binder.getService();
+        }
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            mService = null;
+        }
+    };
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_control);
-        super.setTitle("Test");
+        super.setTitle("Washing Control");
 
         final MainControl activity = this;
         Button startRequestButton = (Button) findViewById(R.id.startRequestButton);
         final TextView printView = (TextView) findViewById(R.id.printView);
+
 
         final SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         final String defaultValueHost = "192.168.160.35";
@@ -51,15 +70,26 @@ public class MainControl extends AppCompatActivity {
                     Toast.makeText(getApplicationContext(), "Bitte Adresse des Servers einstellen", Toast.LENGTH_LONG).show();
 
                 } else {
+
+
                     String ipAddress = sharedPref.getString("host", "");
                     int port = Integer.parseInt(sharedPref.getString("port", ""));
                     Log.d("ipdadresse", ipAddress);
                     Log.d("port", sharedPref.getString("port", defaultValuePort));
 
-                    if (!updateInProgress) {
-                        ServerConnection t = new ServerConnection(activity, ipAddress, port);
-                        t.execute();
+
+                    if (mService!=null) {
+                        mService.sendCommand("abc");
                     }
+
+//
+//
+//                        if (!updateInProgress) {
+//                        ServerConnection t = new ServerConnection(activity, ipAddress, port);
+//
+//                            t.execute();
+//                        }
+
                 }
             }
 
@@ -86,6 +116,22 @@ public class MainControl extends AppCompatActivity {
                 startActivity(i);
             default:
                 return super.onOptionsItemSelected(item);
+        }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Intent intent = new Intent(this, SocketService.class);
+        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+        startService(intent);
+    }
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (mService != null) {
+            unbindService(mConnection);
+            mService = null;
         }
     }
 

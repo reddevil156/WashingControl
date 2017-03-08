@@ -50,6 +50,7 @@ class ServerConnection extends AsyncTask<String, String, String> {
         input = null;
     }
 
+
     /*
         Stellt im Hintergrund die Datenbankverbidung her, sendet und liest die Daten
      */
