@@ -54,7 +54,7 @@ public class MainControl extends AppCompatActivity {
     };
 
     private void doBindService() {
-        mService.setIpPort(ipAddress, port);
+        //mService.setIpPort(ipAddress, port);
         bindService(new Intent(this, SocketService.class), mConnection, Context.BIND_AUTO_CREATE);
         mIsBound = true;
         if (mService != null) {

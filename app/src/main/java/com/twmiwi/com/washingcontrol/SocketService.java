@@ -23,22 +23,23 @@ import java.net.SocketAddress;
 public class SocketService extends Service {
 
     private final IBinder myBinder = new LocalBinder();
-    private String serverip = "192.168.160.35"; //your computer IP address should be written here
-    private int serverport = 2001;
+    // private String serverip = "192.168.160.35"; //your computer IP address should be written here
+    //private int serverport = 2001;
+    String serverIP;
+    int serverPort;
 //    final String defaultValueHost = "192.168.160.35";
 //    final String defaultValuePort = "2001";
 //    private String serverip; //your computer IP address should be written here
 //    private int serverport;
-
+    Boolean test = false;
 
 
     private OutputStream out;
     private Socket socket = new Socket();
-    private SocketAddress serverAddr;
+
     private String command;
     private Boolean writingSuccessful = false;
     private SocketService service = this;
-
 
 
     @Nullable
@@ -66,10 +67,12 @@ public class SocketService extends Service {
         super.onStartCommand(intent, flags, startId);
         System.out.println("I am in on start");
 
-//        String ipAddress = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString("host", "");
-//        int port = Integer.parseInt(PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString("port", ""));
+
+        serverIP = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString("host", "");
+        serverPort = Integer.parseInt(PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString("port", "1234"));
 
 
+        System.out.println("serverip " + serverIP + " serverport" + serverPort);
 
         if (!socket.isConnected()) {
             ConnectSocket connect = new ConnectSocket();
@@ -98,7 +101,6 @@ public class SocketService extends Service {
         }
 
 
-
     }
 
     class ConnectSocket extends AsyncTask<String, String, String> {
@@ -108,40 +110,42 @@ public class SocketService extends Service {
 
             try {
                 //here you must put your computer's IP address.
-                serverAddr = new InetSocketAddress(serverip, serverport);
-                Log.e("TCP Client", "C: Connecting...");
-                //create a socket to make the connection with the server
+                System.out.println("IPPPPPPPP" + serverIP);
+                System.out.println("IPPPPPPPP" + serverPort);
+
+                    InetSocketAddress serverAddr = new InetSocketAddress(serverIP, serverPort);
+                    Log.e("TCP Client", "C: Connecting...");
+                    //create a socket to make the connection with the server
+                    socket.connect(serverAddr, 10000);
+
+                    try {
+                        //send the message to the server
+                        out = socket.getOutputStream();
+                        String test = "test";
+                        out.write(test.getBytes());
+
+                        Log.e("TCP Client", "C: Sent.");
+
+                        Log.e("TCP Client", "C: Done.");
 
 
-                socket.connect(serverAddr, 10000);
+                    } catch (Exception e) {
 
-                try {
-                    //send the message to the server
-                    out = socket.getOutputStream();
-                    String test = "test";
-                    out.write(test.getBytes());
+                        Log.e("TCP", "S: Error", e);
 
-                    Log.e("TCP Client", "C: Sent.");
+                    }
 
-                    Log.e("TCP Client", "C: Done.");
-
-
-                } catch (Exception e) {
-
-                    Log.e("TCP", "S: Error", e);
-
-                }
             } catch (Exception e) {
 //                Toast.makeText(service, "Verbindung kann nicht hergestellt werden", Toast.LENGTH_LONG).show();
                 Log.e("TCP", "C: Error", e);
 
             }
+
             return "";
         }
 
         protected void onPostExecute(String values) {
-
-           service.isConnectionEstablished();
+            service.isConnectionEstablished();
 
         }
 
@@ -166,16 +170,16 @@ public class SocketService extends Service {
 
     public void isConnectionEstablished() {
         if (socket.isConnected()) {
-                Toast.makeText(this, "Verbindung hergestellt", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Verbindung hergestellt", Toast.LENGTH_LONG).show();
         } else {
-                Toast.makeText(this, "Verbindung konnte nicht hergestellt werden", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Verbindung konnte nicht hergestellt werden", Toast.LENGTH_LONG).show();
         }
 
     }
 
     public void setIpPort(String ipAdress, int port) {
-        this.serverip = ipAdress;
-        this.serverport = port;
+        this.serverIP = ipAdress;
+        this.serverPort = port;
     }
 
 
