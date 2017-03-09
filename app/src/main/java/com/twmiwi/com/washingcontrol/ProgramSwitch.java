@@ -7,7 +7,7 @@ import android.util.AttributeSet;
 import android.widget.ImageView;
 
 /**
- * Created by tobia on 06.03.2017.
+ * Created by tw on 06.03.2017.
  */
 
 public class ProgramSwitch extends AppCompatImageView {

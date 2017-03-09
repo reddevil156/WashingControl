@@ -6,12 +6,9 @@
     <string name="serverPort">Port</string>
     <string name="applyValue">Bestätigen</string>
     <string name="printView">Textbox</string>
-    <string name="menuButton">Menü</string>
     <string name="menuitem1">Einstellungen</string>
 
     <string name="errorHostNotReachable">Server nicht erreichbar</string>
     <string name="errorOnDataReading">Fehler beim Empfangen der Daten des Servers</string>
-    <string name="errorOnDataSending">Fehler beim Senden der Daten an den Server</string>
-    <string name="errorSocketTimeout">Timeout der Verbindung zum Server</string>
 
 </resources>

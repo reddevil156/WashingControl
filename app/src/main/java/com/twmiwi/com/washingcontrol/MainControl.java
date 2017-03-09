@@ -28,6 +28,14 @@ public class MainControl extends AppCompatActivity {
 
     boolean updateInProgress = false;
     private SocketService mService = null;
+    Boolean mIsBound = false;
+    //    final SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+    String ipAddress;
+    int port;
+
+//        Log.d("ipdadresse", ipAddress);
+//        Log.d("port"+port, "");
+
 
     private ServiceConnection mConnection = new ServiceConnection() {
         @Override
@@ -36,11 +44,32 @@ public class MainControl extends AppCompatActivity {
             SocketService.LocalBinder binder = (SocketService.LocalBinder) service;
             mService = binder.getService();
         }
+
         @Override
         public void onServiceDisconnected(ComponentName name) {
             mService = null;
         }
+
+
     };
+
+    private void doBindService() {
+        mService.setIpPort(ipAddress, port);
+        bindService(new Intent(this, SocketService.class), mConnection, Context.BIND_AUTO_CREATE);
+        mIsBound = true;
+        if (mService != null) {
+            mService.IsBoundable();
+        }
+    }
+
+
+    private void doUnbindService() {
+        if (mIsBound) {
+            // Detach our existing connection.
+            unbindService(mConnection);
+            mIsBound = false;
+        }
+    }
 
 
     @Override
@@ -53,44 +82,29 @@ public class MainControl extends AppCompatActivity {
         Button startRequestButton = (Button) findViewById(R.id.startRequestButton);
         final TextView printView = (TextView) findViewById(R.id.printView);
 
-
         final SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        final String defaultValueHost = "192.168.160.35";
-        final String defaultValuePort = "2001";
+        ipAddress = sharedPref.getString("host", "192.168.160.35");
+        port = Integer.parseInt(sharedPref.getString("port", "2001"));
+
 
         ProgramSwitch programSwitch = (ProgramSwitch) findViewById(R.id.imageRotor);
         programSwitch.initialize();
+
 
         startRequestButton.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
-                if (sharedPref.getString("host", "").equals("") || sharedPref.getString("port", "").equals("")) {
-
-                    Toast.makeText(getApplicationContext(), "Bitte Adresse des Servers einstellen", Toast.LENGTH_LONG).show();
-
-                } else {
-
-
-                    String ipAddress = sharedPref.getString("host", "");
-                    int port = Integer.parseInt(sharedPref.getString("port", ""));
-                    Log.d("ipdadresse", ipAddress);
-                    Log.d("port", sharedPref.getString("port", defaultValuePort));
-
-
-                    if (mService!=null) {
-                        mService.sendCommand("abc");
-                    }
-
+//                if (sharedPref.getString("host", "").equals("") || sharedPref.getString("port", "").equals("")) {
 //
+//                    Toast.makeText(getApplicationContext(), "Bitte Adresse des Servers einstellen", Toast.LENGTH_LONG).show();
 //
-//                        if (!updateInProgress) {
-//                        ServerConnection t = new ServerConnection(activity, ipAddress, port);
-//
-//                            t.execute();
-//                        }
+//                } else {
 
+                if (mService != null) {
+                    mService.sendCommand("abc");
                 }
+//                }
             }
 
         });
@@ -99,7 +113,6 @@ public class MainControl extends AppCompatActivity {
     public void setUpdateOnProgress(Boolean inProgress) {
         updateInProgress = inProgress;
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -113,19 +126,52 @@ public class MainControl extends AppCompatActivity {
         switch (item.getItemId()) {
             case R.id.item1:
                 Intent i = new Intent(MainControl.this, OptionsPanel.class);
-                startActivity(i);
+//                startActivity(i);
+                startActivityForResult(i, 222);
             default:
                 return super.onOptionsItemSelected(item);
         }
     }
 
     @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent Data) {
+        if (requestCode == 222) {
+            final SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+            ipAddress = sharedPref.getString("host", "");
+            port = Integer.parseInt(sharedPref.getString("port", ""));
+//            mService.unbindService(mConnection);
+//            Intent intent = new Intent(this, SocketService.class);
+//            bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+//            startService(intent);
+        }
+
+    }
+    /*
+
+                if (resultCode == RESULT_OK) {
+                String myValue = data.getStringExtra("valueName");
+
+                in der anderen activity:
+
+                setResult(int, Intent)
+                Intent resultData = new Intent();
+                resultData.putExtra("valueName", "valueData");
+                setResult(Activity.RESULT_OK, resultData);
+                finish();
+
+
+     */
+
+    @Override
     protected void onStart() {
         super.onStart();
-        Intent intent = new Intent(this, SocketService.class);
-        bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
-        startService(intent);
+        if (!mIsBound) {
+            Intent intent = new Intent(this, SocketService.class);
+            bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+            startService(intent);
+        }
     }
+
     @Override
     protected void onStop() {
         super.onStop();
