@@ -31,7 +31,7 @@ public class OptionsPanel extends AppCompatActivity {
 
 
         serverAddress.setText(sharedPref.getString("host",""));
-        portAddress.setText(sharedPref.getString("port", ""));
+        portAddress.setText(String.valueOf(sharedPref.getInt("port", 2001)));
 
         applyValuesButton.setOnClickListener(new View.OnClickListener(){
 
@@ -39,7 +39,7 @@ public class OptionsPanel extends AppCompatActivity {
             public void onClick(View v) {
                 editor.putString("host", serverAddress.getText().toString());
                 Log.d("host button",serverAddress.getText().toString() );
-                editor.putString("port", portAddress.getText().toString());
+                editor.putInt("port", Integer.parseInt(portAddress.getText().toString()));
                 editor.apply();
 
             }

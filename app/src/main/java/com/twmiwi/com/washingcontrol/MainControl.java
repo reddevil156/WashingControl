@@ -47,7 +47,7 @@ public class MainControl extends AppCompatActivity {
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
-            mService = null;
+             mService = null;
         }
 
 
@@ -84,7 +84,7 @@ public class MainControl extends AppCompatActivity {
 
         final SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         ipAddress = sharedPref.getString("host", "192.168.160.35");
-        port = Integer.parseInt(sharedPref.getString("port", "2001"));
+        port = sharedPref.getInt("port", 2001);
 
 
         ProgramSwitch programSwitch = (ProgramSwitch) findViewById(R.id.imageRotor);
@@ -136,9 +136,9 @@ public class MainControl extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent Data) {
         if (requestCode == 222) {
-            final SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-            ipAddress = sharedPref.getString("host", "");
-            port = Integer.parseInt(sharedPref.getString("port", ""));
+//            final SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+//            ipAddress = sharedPref.getString("host", "");
+//            port = Integer.parseInt(sharedPref.getString("port", ""));
 //            mService.unbindService(mConnection);
 //            Intent intent = new Intent(this, SocketService.class);
 //            bindService(intent, mConnection, Context.BIND_AUTO_CREATE);

@@ -11,6 +11,7 @@ import android.support.annotation.Nullable;
 import android.util.Log;
 import android.widget.Toast;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -27,7 +28,7 @@ public class SocketService extends Service {
     //private int serverport = 2001;
     String serverIP;
     int serverPort;
-//    final String defaultValueHost = "192.168.160.35";
+    //    final String defaultValueHost = "192.168.160.35";
 //    final String defaultValuePort = "2001";
 //    private String serverip; //your computer IP address should be written here
 //    private int serverport;
@@ -69,15 +70,21 @@ public class SocketService extends Service {
 
 
         serverIP = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString("host", "");
-        serverPort = Integer.parseInt(PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString("port", "1234"));
-
+        serverPort = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getInt("port", 1234);
+//        PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).
 
         System.out.println("serverip " + serverIP + " serverport" + serverPort);
-
-        if (!socket.isConnected()) {
-            ConnectSocket connect = new ConnectSocket();
-            connect.execute();
+        System.out.println("is connected" + socket.isConnected());
+        if (socket.isConnected()) {
+            try {
+                socket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
+        ConnectSocket connect = new ConnectSocket();
+        connect.execute();
+
         return START_STICKY;
     }
 
@@ -113,27 +120,29 @@ public class SocketService extends Service {
                 System.out.println("IPPPPPPPP" + serverIP);
                 System.out.println("IPPPPPPPP" + serverPort);
 
-                    InetSocketAddress serverAddr = new InetSocketAddress(serverIP, serverPort);
-                    Log.e("TCP Client", "C: Connecting...");
-                    //create a socket to make the connection with the server
-                    socket.connect(serverAddr, 10000);
+//                InetSocketAddress serverAddr = new InetSocketAddress(serverIP, serverPort);
+                Log.e("TCP Client", "C: Connecting...");
+                //create a socket to make the connection with the server
+//                socket = new Socket(serverIP, serverPort);
+//                socket.setSoTimeout(1000);
+                    socket.connect(new InetSocketAddress(serverIP, serverPort), 10000);
 
-                    try {
-                        //send the message to the server
-                        out = socket.getOutputStream();
-                        String test = "test";
-                        out.write(test.getBytes());
+                try {
+                    //send the message to the server
+                    out = socket.getOutputStream();
+                    String test = "test";
+                    out.write(test.getBytes());
 
-                        Log.e("TCP Client", "C: Sent.");
+                    Log.e("TCP Client", "C: Sent.");
 
-                        Log.e("TCP Client", "C: Done.");
+                    Log.e("TCP Client", "C: Done.");
 
 
-                    } catch (Exception e) {
+                } catch (Exception e) {
 
-                        Log.e("TCP", "S: Error", e);
+                    Log.e("TCP", "S: Error", e);
 
-                    }
+                }
 
             } catch (Exception e) {
 //                Toast.makeText(service, "Verbindung kann nicht hergestellt werden", Toast.LENGTH_LONG).show();
@@ -146,6 +155,11 @@ public class SocketService extends Service {
 
         protected void onPostExecute(String values) {
             service.isConnectionEstablished();
+            try {
+                SocketService.this.finalize();
+            } catch (Throwable throwable) {
+                throwable.printStackTrace();
+            }
 
         }
 
