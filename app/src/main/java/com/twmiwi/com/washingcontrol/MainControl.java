@@ -49,8 +49,6 @@ public class MainControl extends AppCompatActivity {
         public void onServiceDisconnected(ComponentName name) {
              mService = null;
         }
-        
-
 
     };
 

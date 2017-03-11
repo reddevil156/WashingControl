@@ -24,14 +24,8 @@ import java.net.Socket;
 public class SocketService extends Service {
 
     private final IBinder myBinder = new LocalBinder();
-    // private String serverip = "192.168.160.35"; //your computer IP address should be written here
-    //private int serverport = 2001;
     String serverIP;
     int serverPort;
-    //    final String defaultValueHost = "192.168.160.35";
-//    final String defaultValuePort = "2001";
-//    private String serverip; //your computer IP address should be written here
-//    private int serverport;
     Boolean test = false;
 
 
