@@ -78,6 +78,7 @@ public class SocketService extends Service {
         if (socket.isConnected()) {
             try {
                 socket.close();
+                System.out.println("socket geschlossen");
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -123,9 +124,8 @@ public class SocketService extends Service {
 //                InetSocketAddress serverAddr = new InetSocketAddress(serverIP, serverPort);
                 Log.e("TCP Client", "C: Connecting...");
                 //create a socket to make the connection with the server
-//                socket = new Socket(serverIP, serverPort);
-//                socket.setSoTimeout(1000);
-                    socket.connect(new InetSocketAddress(serverIP, serverPort), 10000);
+                socket = new Socket();
+                socket.connect(new InetSocketAddress(serverIP, serverPort), 10000);
 
                 try {
                     //send the message to the server
