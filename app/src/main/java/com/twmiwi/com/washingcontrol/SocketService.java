@@ -2,7 +2,6 @@ package com.twmiwi.com.washingcontrol;
 
 import android.app.Service;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.IBinder;
@@ -12,10 +11,11 @@ import android.util.Log;
 import android.widget.Toast;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.SocketAddress;
+
 
 /**
  * Created by tw on 08.03.2017.
@@ -36,6 +36,7 @@ public class SocketService extends Service {
 
 
     private OutputStream out;
+    private InputStream input;
     private Socket socket = new Socket();
 
     private String command;
@@ -71,10 +72,9 @@ public class SocketService extends Service {
 
         serverIP = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getString("host", "");
         serverPort = PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).getInt("port", 1234);
-//        PreferenceManager.getDefaultSharedPreferences(getApplicationContext()).
 
         System.out.println("serverip " + serverIP + " serverport" + serverPort);
-        System.out.println("is connected" + socket.isConnected());
+
         if (socket.isConnected()) {
             try {
                 socket.close();
@@ -99,7 +99,8 @@ public class SocketService extends Service {
                     if (writingSuccessful) {
                         Toast.makeText(service, "Befehl gesendet", Toast.LENGTH_LONG).show();
                     } else {
-                        Toast.makeText(service, "Befehl konnte nicht gesendete werden", Toast.LENGTH_LONG).show();
+                        reconnectSocket();
+                        Toast.makeText(service, "Befehl konnte nicht gesendet werden", Toast.LENGTH_LONG).show();
                     }
                 }
             });
@@ -117,11 +118,7 @@ public class SocketService extends Service {
         protected String doInBackground(String... params) {
 
             try {
-                //here you must put your computer's IP address.
-                System.out.println("IPPPPPPPP" + serverIP);
-                System.out.println("IPPPPPPPP" + serverPort);
 
-//                InetSocketAddress serverAddr = new InetSocketAddress(serverIP, serverPort);
                 Log.e("TCP Client", "C: Connecting...");
                 //create a socket to make the connection with the server
                 socket = new Socket();
@@ -130,6 +127,7 @@ public class SocketService extends Service {
                 try {
                     //send the message to the server
                     out = socket.getOutputStream();
+                    input = socket.getInputStream();
                     String test = "test";
                     out.write(test.getBytes());
 
@@ -191,9 +189,17 @@ public class SocketService extends Service {
 
     }
 
-    public void setIpPort(String ipAdress, int port) {
-        this.serverIP = ipAdress;
-        this.serverPort = port;
+    public void reconnectSocket() {
+        try {
+            socket.close();
+            out.close();
+            input.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        ConnectSocket connect = new ConnectSocket();
+        connect.execute();
     }
 
 

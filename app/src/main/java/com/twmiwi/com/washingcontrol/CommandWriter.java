@@ -3,6 +3,7 @@ package com.twmiwi.com.washingcontrol;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import java.io.IOException;
 import java.io.OutputStream;
 
 /**
@@ -16,7 +17,7 @@ class CommandWriter extends AsyncTask<String, String, Boolean> {
     AsyncResponse delegate = null;
 
 
-    public CommandWriter (OutputStream out, String command, AsyncResponse delegate) {
+    public CommandWriter(OutputStream out, String command, AsyncResponse delegate) {
         this.outputStream = out;
         this.command = command;
         this.delegate = delegate;
@@ -29,13 +30,24 @@ class CommandWriter extends AsyncTask<String, String, Boolean> {
 
         } catch (Exception e) {
             Log.e("TCP", "Fehler beim schreiben", e);
+
+//            if (e.getMessage().contains("Broken Pipe")) {
+//                try {
+//                    outputStream.close();
+//                } catch (IOException e1) {
+//                    Log.e("TCP", "Fehler beim schließen des OutputStreams", e1);
+//                }
+//            }
+
             return false;
+
+
         }
         return true;
     }
 
-    @Override
-    protected void onPostExecute(Boolean values) {
-        delegate.processFinish(values);
-    }
-}
+            @Override
+            protected void onPostExecute (Boolean values){
+                delegate.processFinish(values);
+            }
+        }

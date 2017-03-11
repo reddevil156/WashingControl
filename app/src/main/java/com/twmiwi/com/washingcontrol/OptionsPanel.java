@@ -20,6 +20,7 @@ public class OptionsPanel extends AppCompatActivity {
     public void onCreate(Bundle savedInstance) {
         super.onCreate(savedInstance);
         setContentView(R.layout.activity_options_panel);
+        super.setTitle("Washing Control - Einstellungen");
 
         Button applyValuesButton = (Button) findViewById(R.id.applyValues);
         final EditText serverAddress = (EditText) findViewById(R.id.serverAddress);
