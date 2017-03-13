@@ -14,5 +14,11 @@
     <string name="toggleVorwäsche">Vorwäsche</string>
     <string name="toggleWaterPlus">Wasser plus</string>
     <string name="toggleShort">Kurz</string>
+    <string name="ledOn">Ein</string>
+    <string name="ledVorwaesche">Einw./Vorwäsche</string>
+    <string name="ledHauptWaesche">Hauptwäsche</string>
+    <string name="ledSpuelen">Spülen/Spülstop</string>
+    <string name="ledPumpen">Pumpen /Entschl.</string>
+    <string name="ledEnd">Knittersch. / Ende</string>
 
 </resources>
