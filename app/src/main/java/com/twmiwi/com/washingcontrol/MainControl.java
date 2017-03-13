@@ -79,7 +79,6 @@ public class MainControl extends AppCompatActivity {
 
         final MainControl activity = this;
         Button startRequestButton = (Button) findViewById(R.id.startRequestButton);
-        final TextView printView = (TextView) findViewById(R.id.printView);
 
         final SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         ipAddress = sharedPref.getString("host", "192.168.160.35");
@@ -88,6 +87,8 @@ public class MainControl extends AppCompatActivity {
 
         final ProgramSwitch programSwitch = (ProgramSwitch) findViewById(R.id.imageRotor);
         programSwitch.initialize();
+        final MiniSwitch miniSwitch = (MiniSwitch) findViewById(R.id.imageMiniSwitch);
+        miniSwitch.initialize();
 
         receiver = new BroadcastReceiver() {
             @Override

@@ -10,5 +10,9 @@
 
     <string name="errorHostNotReachable">Server nicht erreichbar</string>
     <string name="errorOnDataReading">Fehler beim Empfangen der Daten des Servers</string>
+    <string name="toggleEinweichen">Einweichen</string>
+    <string name="toggleVorwäsche">Vorwäsche</string>
+    <string name="toggleWaterPlus">Wasser plus</string>
+    <string name="toggleShort">Kurz</string>
 
 </resources>
