@@ -26,9 +26,14 @@ public class ProgramSwitch extends AppCompatImageView {
 
     public void initialize() {
 
-//        this.setImageResource(R.drawable.rotoron);
-        setRotation(new Float (210));
+       setRotation(new Float (210));
 
+
+    }
+
+    public void setActualStatus(int switchStatus) {
+
+        setRotation(new Float(switchStatus*15));
 
     }
 }

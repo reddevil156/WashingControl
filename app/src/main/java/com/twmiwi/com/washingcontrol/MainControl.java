@@ -2,9 +2,12 @@ package com.twmiwi.com.washingcontrol;
 
 
 import android.app.Activity;
+import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
@@ -12,6 +15,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.design.widget.TabLayout;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatImageView;
 import android.util.Log;
@@ -29,13 +33,9 @@ public class MainControl extends AppCompatActivity {
     boolean updateInProgress = false;
     private SocketService mService = null;
     Boolean mIsBound = false;
-    //    final SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
     String ipAddress;
     int port;
-
-//        Log.d("ipdadresse", ipAddress);
-//        Log.d("port"+port, "");
-
+    BroadcastReceiver receiver;
 
     private ServiceConnection mConnection = new ServiceConnection() {
         @Override
@@ -86,20 +86,24 @@ public class MainControl extends AppCompatActivity {
         port = sharedPref.getInt("port", 2001);
 
 
-        ProgramSwitch programSwitch = (ProgramSwitch) findViewById(R.id.imageRotor);
+        final ProgramSwitch programSwitch = (ProgramSwitch) findViewById(R.id.imageRotor);
         programSwitch.initialize();
+
+        receiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                String s = intent.getStringExtra(SocketService.SOCKET_READ_SUCCESSFUL);
+                if (s.equals("ok")) {
+                    programSwitch.setActualStatus(mService.getSwitchCodeTransformed());
+                }
+            }
+        };
 
 
         startRequestButton.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
-//                if (sharedPref.getString("host", "").equals("") || sharedPref.getString("port", "").equals("")) {
-//
-//                    Toast.makeText(getApplicationContext(), "Bitte Adresse des Servers einstellen", Toast.LENGTH_LONG).show();
-//
-//                } else {
-
                 if (mService != null) {
                     mService.sendCommand("abc");
                 }
@@ -169,6 +173,9 @@ public class MainControl extends AppCompatActivity {
             bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
             startService(intent);
         }
+        LocalBroadcastManager.getInstance(this).registerReceiver((receiver),
+                new IntentFilter(SocketService.SOCKET_RESULT)
+        );
     }
 
     @Override
@@ -178,7 +185,8 @@ public class MainControl extends AppCompatActivity {
             unbindService(mConnection);
             mService = null;
         }
-    }
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver);
+     }
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {

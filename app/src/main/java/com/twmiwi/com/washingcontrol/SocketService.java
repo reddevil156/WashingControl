@@ -7,6 +7,7 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -26,16 +27,19 @@ public class SocketService extends Service {
     private final IBinder myBinder = new LocalBinder();
     String serverIP;
     int serverPort;
-    Boolean test = false;
 
+    LocalBroadcastManager broadcaster;
+    static final public String SOCKET_RESULT = "com.twmiwi.com.wachingcontrol.READ_COMPLETED";
+    static final public String SOCKET_READ_SUCCESSFUL = "com.twmiwi.com.wachingcontrol.SOCKET_READ_SUCCESSFUL";
 
     private OutputStream out;
     private InputStream input;
     private Socket socket = new Socket();
 
     private String command;
-    private Boolean writingSuccessful = false;
     private SocketService service = this;
+    byte[] received;
+    private int switchCode;
 
 
     @Nullable
@@ -55,6 +59,7 @@ public class SocketService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        broadcaster = LocalBroadcastManager.getInstance(this);
         System.out.println("I am in on create");
     }
 
@@ -85,12 +90,33 @@ public class SocketService extends Service {
 
     public void sendCommand(String command) {
 
+        //TODO
+        //true if we want to read, false if we want to write
+        boolean commandRead = true;
+
         if (socket.isConnected()) {
+
+
+            InputReader reader = new InputReader(input, commandRead, new AsyncResponse() {
+                @Override
+                public void processFinish(Object output) {
+
+                    //TODO anpassen ob lesen oder schreiben
+                    received = (byte[]) output;
+                    switchCode = (checkSwitchCode(received[0]));
+                    sendResult("ok");
+                    System.out.println(getByteBinaryString(received[0]));
+                    System.out.println(getByteBinaryString(received[1]));
+                    System.out.println(getByteBinaryString(received[2]));
+                    System.out.println(getByteBinaryString(received[3]));
+
+                }
+            });
+
             CommandWriter writer = new CommandWriter(out, command, new AsyncResponse() {
                 @Override
                 public void processFinish(Object output) {
-                    writingSuccessful = (Boolean) output;
-                    if (writingSuccessful) {
+                    if ((Boolean) output) {
                         Toast.makeText(service, "Befehl gesendet", Toast.LENGTH_LONG).show();
                     } else {
                         reconnectSocket();
@@ -99,6 +125,7 @@ public class SocketService extends Service {
                 }
             });
             writer.execute();
+            reader.execute();
         } else {
             Toast.makeText(service, "Keine Verbindung zu Server", Toast.LENGTH_LONG).show();
         }
@@ -122,6 +149,8 @@ public class SocketService extends Service {
                     //send the message to the server
                     out = socket.getOutputStream();
                     input = socket.getInputStream();
+
+                    input.skip(9);
                     String test = "test";
                     out.write(test.getBytes());
 
@@ -196,5 +225,38 @@ public class SocketService extends Service {
         connect.execute();
     }
 
+    public void sendResult(String message) {
+        Intent intent = new Intent(SOCKET_RESULT);
+        if (message != null)
+            intent.putExtra(SOCKET_READ_SUCCESSFUL, message);
+        broadcaster.sendBroadcast(intent);
+    }
 
+    private static String getByteBinaryString(byte b) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 7; i >= 0; --i) {
+            sb.append(b >>> i & 1);
+        }
+        return sb.toString();
+    }
+
+    public int checkSwitchCode(byte switchCode) {
+
+        String[] greyCodeTable = {"11111", "10111", "10011", "00011", "00100", "01100", "01000", "01010", "01110", "00110", "00010",
+                "10010", "10110", "11110", "11010", "11000", "11100", "10100", "10000", "10001", "10101",
+                "11101", "11001", "11011"};
+        String returnString = getByteBinaryString(switchCode).substring(3);
+        int switchValue = 0;
+
+        for (int i = 0; i < 24; i++) {
+            if (returnString.equals(greyCodeTable[i])) {
+                switchValue = i;
+            }
+        }
+        return switchValue;
+    }
+
+    public int getSwitchCodeTransformed() {
+        return switchCode;
+    }
 }
