@@ -20,6 +20,9 @@ import android.widget.ImageView;
  */
 
 public class MiniSwitch extends AppCompatImageView {
+
+    private int switchStatus;
+
     public MiniSwitch(Context context) {
         super(context);
         initialize();
@@ -35,14 +38,16 @@ public class MiniSwitch extends AppCompatImageView {
 
     public void initialize() {
 
-        setRotation(new Float (72));
-
-
     }
 
     public void setActualStatus(int switchStatus) {
 
+        this.switchStatus = switchStatus;
         setRotation(new Float(switchStatus*72));
 
+    }
+
+    public int getActualStatus() {
+        return this.switchStatus;
     }
 }

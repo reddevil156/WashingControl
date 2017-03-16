@@ -15,16 +15,15 @@ public class InputReader extends AsyncTask<String, String, byte[]> {
 
     private InputStream input;
     AsyncResponse delegate = null;
-    private Boolean commandRead;
     private byte[] received = new byte[4];
-    int loopCounter;
+    private int loopCounter;
 
 
 
-    public InputReader(InputStream input, Boolean commandRead, AsyncResponse delegate) {
+    public InputReader(InputStream input, int loopCounter, AsyncResponse delegate) {
         this.input = input;
         this.delegate = delegate;
-        this.commandRead = commandRead;
+        this.loopCounter = loopCounter;
 
     }
 
@@ -35,15 +34,9 @@ public class InputReader extends AsyncTask<String, String, byte[]> {
 
         try {
 
-            if (commandRead = true) {
-                loopCounter = 4;
-            } else {
-                loopCounter = 1;
-            }
-
             Byte lineReader;
             int zaehler = 0;
-
+            System.out.println("loopcounter"+loopCounter);
             // 9 Steuerzeichen kommen vor dem eigentlichen Versand, diese werden verworfen!
             while (zaehler < loopCounter) {
                 lineReader = (byte) input.read();

@@ -40,6 +40,9 @@ public class SocketService extends Service {
     private SocketService service = this;
     byte[] received;
     private int switchCode;
+    private String ledCode;
+    private int miniSwitchCode;
+    private String buttonRow;
 
 
     @Nullable
@@ -88,44 +91,88 @@ public class SocketService extends Service {
         return START_STICKY;
     }
 
-    public void sendCommand(String command) {
+    public void sendCommand(int status) {
 
         //TODO
         //true if we want to read, false if we want to write
-        boolean commandRead = true;
 
         if (socket.isConnected()) {
 
 
-            InputReader reader = new InputReader(input, commandRead, new AsyncResponse() {
-                @Override
-                public void processFinish(Object output) {
+            if (status == 0) {
 
-                    //TODO anpassen ob lesen oder schreiben
-                    received = (byte[]) output;
-                    switchCode = (checkSwitchCode(received[0]));
-                    sendResult("ok");
-                    System.out.println(getByteBinaryString(received[0]));
-                    System.out.println(getByteBinaryString(received[1]));
-                    System.out.println(getByteBinaryString(received[2]));
-                    System.out.println(getByteBinaryString(received[3]));
+                //TODO
+                int command = 120;
+                InputReader reader = new InputReader(input, 4, new AsyncResponse() {
+                    @Override
+                    public void processFinish(Object output) {
 
-                }
-            });
+                        //4 bytes returned
+                        received = (byte[]) output;
+                        // first byte is used for the program switch, returns an int for the actual setting
+                        switchCode = (checkSwitchCode(received[0]));
+                        // second byte must be split; bits 3-8 are for the 6 leds
+                        ledCode = getByteBinaryString(received[1]).substring(2);
+                        // third bit is split; first 4 bits for the mini switch, returns an int for the actual setting
+                        miniSwitchCode = (checkMiniSwitchCode(received[2]));
+                        // last 4 bits ot the third byte are used for the 4 buttons.
+                        buttonRow = getByteBinaryString(received[2]).substring(4);
 
-            CommandWriter writer = new CommandWriter(out, command, new AsyncResponse() {
-                @Override
-                public void processFinish(Object output) {
-                    if ((Boolean) output) {
-                        Toast.makeText(service, "Befehl gesendet", Toast.LENGTH_LONG).show();
-                    } else {
-                        reconnectSocket();
-                        Toast.makeText(service, "Befehl konnte nicht gesendet werden", Toast.LENGTH_LONG).show();
+                        sendResult("readOK");
+                        System.out.println(getByteBinaryString(received[0]));
+                        System.out.println(getByteBinaryString(received[1]));
+                        System.out.println(getByteBinaryString(received[2]));
+                        System.out.println(getByteBinaryString(received[3]));
+
                     }
-                }
-            });
-            writer.execute();
-            reader.execute();
+                });
+
+                CommandWriter writer = new CommandWriter(out, command, new AsyncResponse() {
+                    @Override
+                    public void processFinish(Object output) {
+                        if ((Boolean) output) {
+                            Toast.makeText(service, "Befehl gesendet", Toast.LENGTH_LONG).show();
+                        } else {
+                            reconnectSocket();
+                            Toast.makeText(service, "Befehl konnte nicht gesendet werden", Toast.LENGTH_LONG).show();
+                        }
+                    }
+                });
+                writer.execute();
+                reader.execute();
+            } else if (status == 1) {
+
+                //TODO
+                int command = 250;
+                InputReader reader = new InputReader(input, 1, new AsyncResponse() {
+                    @Override
+                    public void processFinish(Object output) {
+
+                        received = (byte[]) output;
+                        sendResult("writeOK");
+                        System.out.println(getByteBinaryString(received[0]));
+
+                    }
+                });
+
+                CommandWriter writer = new CommandWriter(out, command, new AsyncResponse() {
+                    @Override
+                    public void processFinish(Object output) {
+                        if ((Boolean) output) {
+                            Toast.makeText(service, "Befehl gesendet", Toast.LENGTH_LONG).show();
+                        } else {
+                            reconnectSocket();
+                            Toast.makeText(service, "Befehl konnte nicht gesendet werden", Toast.LENGTH_LONG).show();
+                        }
+                    }
+                });
+                writer.execute();
+                reader.execute();
+
+
+
+
+            }
         } else {
             Toast.makeText(service, "Keine Verbindung zu Server", Toast.LENGTH_LONG).show();
         }
@@ -151,8 +198,9 @@ public class SocketService extends Service {
                     input = socket.getInputStream();
 
                     input.skip(9);
-                    String test = "test";
-                    out.write(test.getBytes());
+//                    String test = "test";
+//                    out.write(test.getBytes());
+                    out.write((byte) 159);
 
                     Log.e("TCP Client", "C: Sent.");
 
@@ -256,7 +304,28 @@ public class SocketService extends Service {
         return switchValue;
     }
 
+    public int checkMiniSwitchCode(byte switchCode) {
+
+        String[] greyCodeTable = {"1100", "0110", "1010", "1001", "0001"};
+        String returnString = getByteBinaryString(switchCode).substring(0,4);;
+        int switchValue = 0;
+
+        for (int i = 0; i < 5; i++) {
+            if (returnString.equals(greyCodeTable[i])) {
+                switchValue = i;
+            }
+        }
+        return switchValue;
+    }
+
     public int getSwitchCodeTransformed() {
         return switchCode;
     }
+    public String getLedCode() {
+        return ledCode;
+    }
+    public int getMiniSwitchCodeTransformed() {
+        return miniSwitchCode;
+    }
+    public String getButtonRow() { return buttonRow; }
 }

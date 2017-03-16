@@ -20,5 +20,6 @@
     <string name="ledSpuelen">Spülen/Spülstop</string>
     <string name="ledPumpen">Pumpen /Entschl.</string>
     <string name="ledEnd">Knittersch. / Ende</string>
+    <string name="startProgram">Programm starten</string>
 
 </resources>

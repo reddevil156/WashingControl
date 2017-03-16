@@ -13,11 +13,11 @@ import java.io.OutputStream;
 class CommandWriter extends AsyncTask<String, String, Boolean> {
 
     OutputStream outputStream;
-    String command;
+    int command;
     AsyncResponse delegate = null;
 
 
-    public CommandWriter(OutputStream out, String command, AsyncResponse delegate) {
+    public CommandWriter(OutputStream out, int command, AsyncResponse delegate) {
         this.outputStream = out;
         this.command = command;
         this.delegate = delegate;
@@ -26,7 +26,8 @@ class CommandWriter extends AsyncTask<String, String, Boolean> {
     @Override
     protected Boolean doInBackground(String... params) {
         try {
-            outputStream.write(command.getBytes());
+
+            outputStream.write((byte)command);
 
         } catch (Exception e) {
             Log.e("TCP", "Fehler beim schreiben", e);

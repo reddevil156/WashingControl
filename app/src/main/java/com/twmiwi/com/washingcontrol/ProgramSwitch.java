@@ -11,6 +11,9 @@ import android.widget.ImageView;
  */
 
 public class ProgramSwitch extends AppCompatImageView {
+
+    private int switchStatus;
+
     public ProgramSwitch(Context context) {
         super(context);
         initialize();
@@ -26,14 +29,16 @@ public class ProgramSwitch extends AppCompatImageView {
 
     public void initialize() {
 
-       setRotation(new Float (210));
-
-
     }
 
     public void setActualStatus(int switchStatus) {
 
+        this.switchStatus = switchStatus;
         setRotation(new Float(switchStatus*15));
 
+    }
+
+    public int getActualStatus() {
+        return this.switchStatus;
     }
 }

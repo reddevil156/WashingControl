@@ -25,17 +25,22 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 public class MainControl extends AppCompatActivity {
 
     boolean updateInProgress = false;
     private SocketService mService = null;
     Boolean mIsBound = false;
-    String ipAddress;
-    int port;
+    Boolean readyToProgram = true;
+    //    String ipAddress;
+//    int port;
     BroadcastReceiver receiver;
+
+
 
     private ServiceConnection mConnection = new ServiceConnection() {
         @Override
@@ -47,7 +52,7 @@ public class MainControl extends AppCompatActivity {
 
         @Override
         public void onServiceDisconnected(ComponentName name) {
-             mService = null;
+            mService = null;
         }
 
     };
@@ -79,11 +84,20 @@ public class MainControl extends AppCompatActivity {
 
         final MainControl activity = this;
         Button startRequestButton = (Button) findViewById(R.id.startRequestButton);
+        Button startProgramButton = (Button) findViewById(R.id.startProgramButton);
 
-        final SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        ipAddress = sharedPref.getString("host", "192.168.160.35");
-        port = sharedPref.getInt("port", 2001);
 
+//        final SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+//        ipAddress = sharedPref.getString("host", "192.168.160.35");
+//        port = sharedPref.getInt("port", 2001);
+
+        final RadioButton radioButtonGroup[] = {(RadioButton) findViewById(R.id.ledEnd), (RadioButton) findViewById(R.id.ledPumpen),
+                (RadioButton) findViewById(R.id.ledSpuelen), (RadioButton) findViewById(R.id.ledHauptWaesche),
+                (RadioButton) findViewById(R.id.ledVorwaesche), (RadioButton) findViewById(R.id.ledOn)};
+
+
+        final ToggleButton toggleButtonGroup[] = {(ToggleButton) findViewById(R.id.toggleWaterPlus), (ToggleButton) findViewById(R.id.toggleVorwäsche),
+                (ToggleButton) findViewById(R.id.toggleEinweichen), (ToggleButton) findViewById(R.id.toggleShort)};
 
         final ProgramSwitch programSwitch = (ProgramSwitch) findViewById(R.id.imageRotor);
         programSwitch.initialize();
@@ -94,8 +108,31 @@ public class MainControl extends AppCompatActivity {
             @Override
             public void onReceive(Context context, Intent intent) {
                 String s = intent.getStringExtra(SocketService.SOCKET_READ_SUCCESSFUL);
-                if (s.equals("ok")) {
+                if (s.equals("readOK")) {
                     programSwitch.setActualStatus(mService.getSwitchCodeTransformed());
+                    miniSwitch.setActualStatus(mService.getMiniSwitchCodeTransformed());
+
+                    String ledCode = mService.getLedCode();
+                    String buttonRow = mService.getButtonRow();
+
+                    for (int i = 0; i < 6; i++) {
+                        if ((ledCode.charAt(i)) == '1') {
+                            radioButtonGroup[i].setChecked(true);
+                        } else {
+                            radioButtonGroup[i].setChecked(false);
+                        }
+                    }
+
+                    for (int i = 0; i < 4; i++) {
+                        if (buttonRow.charAt(i) == '1') {
+                            toggleButtonGroup[i].setChecked(true);
+                        } else {
+                            toggleButtonGroup[i].setChecked(false);
+                        }
+                    }
+
+                } else if (s.equals("writeOK")) {
+                    Toast.makeText(getApplicationContext(), "Programmierung erfolgreich", Toast.LENGTH_LONG).show();
                 }
             }
         };
@@ -106,11 +143,26 @@ public class MainControl extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (mService != null) {
-                    mService.sendCommand("abc");
+                    mService.sendCommand(0);
                 }
-//                }
             }
 
+        });
+        startProgramButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                for (int i = 0; i<5; i++) {
+                    if (radioButtonGroup[i].isChecked()){
+                        readyToProgram = false;
+                        break;
+                    }
+                }
+                if (mService != null && readyToProgram) {
+                    mService.sendCommand(1);
+                } else
+                    Toast.makeText(getApplicationContext(),"Maschine kann nicht programmiert werden", Toast.LENGTH_LONG).show();
+            }
         });
     }
 
@@ -187,7 +239,7 @@ public class MainControl extends AppCompatActivity {
             mService = null;
         }
         LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver);
-     }
+    }
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
